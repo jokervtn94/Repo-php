@@ -1,0 +1,341 @@
+var min_Y = 0;
+var count_rechar = 0;
+var domain_game = window.location.origin;
+load_gui();
+function j_coco() {
+    var time_coco = 1000;
+    if (document.getElementById('j_coco').checked) {
+        var img_coco = document.getElementsByClassName('img_coomary');
+        if (img_coco.length > 0) {
+            for (var a = 0; a < img_coco.length; a++) {
+                if (img_coco[a].style.top === '0px') {
+                    f_write_log('Phát hiện coco!');
+                    img_coco[a].click();
+                    time_coco = 600000;
+                } else {
+                    img_coco[a].parentElement.style.bottom = '-33px';
+                    f_write_log('Phát hiện coco!');
+                    img_coco[a].click();
+                    time_coco = 600000;
+                }
+            }
+            var img_tag = document.getElementsByTagName('img');
+            for (var a = 0; a < img_tag.length; a++) {
+                if (img_tag[a].src.includes('leftspider') && img_tag[a].style.bottom === '0px') {
+                    f_write_log('Phát hiện coco!');
+                    img_tag[a].click();
+                    time_coco = 600000;
+                }
+            }
+        }
+        setTimeout(j_coco, time_coco);
+    }
+}
+
+async function j_drop() {
+    var time_sleep = 100;
+    if (document.getElementById('j_drop').checked || document.getElementById('j_flashdrop').checked ) {
+        try {
+            var item = document.getElementsByClassName('flat-item');
+            if (item.length > 0) {
+                if (min_Y != '') {
+                    item = document.getElementsByClassName('flat-item')[0].parentElement.style.height;
+                    if (item != min_Y) {
+                        min_Y = item;
+                        var Rowchat = f_rowNewChat();
+                        if (document.getElementById('j_flashdrop').checked ) {
+                            var Rowchatnew = Rowchat.getElementsByClassName('normal-msg')[0];
+                            if (Rowchatnew != null) {
+                                if (Rowchatnew.innerText.includes('[BCGAME-')) {
+                                    var Split_tagleft = Rowchatnew.innerText.split('[');
+                                    var Split_tagright = Split_tagleft[1].split(']');
+                                    var Split_addtag = '$[' + Split_tagright[0] + ']$';
+									Split_Newtag = '{"redeemCode":"' + Split_addtag + '"}';
+									var flash_code = await f_fetch(domain_game +'/api/activity/redeemCode/useCode/', 'POST', Split_Newtag);
+									f_write_log(flash_code['msg']);
+                                    if(flash_code['data'] != null){
+                                        f_write_log(flash_code['data']['msg']);
+                                    }
+									f_write_log(Split_addtag);
+									f_write_log('---FLASHDROP---');
+                                } else {
+									var Upcase = Rowchatnew.innerText.match(/[A-Z]{8,}/g);
+									if(Upcase != null){
+										var Flash_code = Upcase;
+										Data_flash = '{"redeemCode":"' + Flash_code + '"}';
+										var flash_code = await f_fetch(domain_game +'/api/activity/redeemCode/useCode/', 'POST', Data_flash);
+										f_write_log(flash_code['msg']);
+                                        if(flash_code['data'] != null){
+                                            f_write_log(flash_code['data']['msg']);
+                                        }
+										f_write_log(Flash_code);
+										f_write_log('---FLASHDROP---');
+									}
+                                    var Textcase = Rowchatnew.innerText.match(/[a-z]{8,}/g);
+                                    if(Textcase != null){
+                                        var Flash_code = Textcase;
+                                        Data_flash = '{"redeemCode":"' + Flash_code + '"}';
+                                        var flash_code = await f_fetch(domain_game +'/api/activity/redeemCode/useCode/', 'POST', Data_flash);
+                                        f_write_log(flash_code['msg']);
+                                        if(flash_code['data'] != null){
+                                            f_write_log(flash_code['data']['msg']);
+                                        }
+                                        f_write_log(Flash_code);
+                                        f_write_log('---FLASHDROP---');
+                                    }
+								}
+                            }
+                        }
+                        if (document.getElementById('j_drop').checked ) {
+                            var coindrop_status = Rowchat.getElementsByClassName('coindrop-status')[0];
+                            if (coindrop_status != null) {
+                                var coindrop_finish = Rowchat.getElementsByClassName('coindrop-status finish');
+                                if (coindrop_finish.length == 0) {
+                                    var coindrop_text = coindrop_status.parentElement.parentElement.parentElement.parentElement.getElementsByClassName('time')[0].innerText;
+                                    coindrop_text = coindrop_text.split(':');
+                                    f_write_log('------Drop\x20time:\x20' + coindrop_text[0] + ':' + coindrop_text[1] + '------');
+                                    coindrop_status.click();
+                                    coindrop_status.innerText == 'Grabed';
+                                    time_sleep = 5000;
+                                }
+                            }
+                        }
+                    }
+                } else min_Y = document.getElementsByClassName('flat-item')[0].parentElement.style.height;
+            }
+        } catch (er_coindrop) {
+            f_write_log(er_coindrop + 'j_drop');
+        }
+        setTimeout(j_drop, time_sleep);
+    }
+}
+
+function f_rowNewChat() {
+    var a = 0;
+    var b = 0;
+    var item = document.getElementsByClassName('flat-item');
+    for (var c = 0; c < item.length; c++) {
+        if (item[c].style.display != 'none') {
+            var replace = item[c].style.transform.replaceAll('translateY(', '').replaceAll('px)', '');
+            replace = parseInt(replace);
+            if (a < replace) {
+                a = replace;
+                b = c;
+            }
+        }
+    }
+    return item[b];
+}
+
+function f_toast_warm() {
+    var notify = click_byClassName('notify-content', 'max', 0, 0);
+    if (notify != null) {
+        (notify.innerText != '' || notify.innerText != '') && (f_write_log('#Thông báo! ' + notify.innerText, 0, 'j_log', 'red'), notify.innerText = '');
+        var click_notify = click_byClassName('notify-close', 'max', 0, 0);
+        click_notify != null && click_notify.click();
+    }
+}
+
+function scrollBottom(a) {
+    a.scroll({
+        'top': a.scrollHeight
+    });
+}
+
+function load_scroll() {
+    try {
+        var chat_list = document.getElementsByClassName('chat-list')[0];
+        scrollBottom(chat_list);
+    } catch {}
+}
+
+function f_while_drop() {
+    if (document.getElementById('j_drop').checked || document.getElementById('j_flashdrop').checked ) {
+        f_toast_warm(), load_scroll();
+        var open = click_byClassName('open-view', 'min', 0);
+        open != null && (open.click(), setTimeout(click_byClassName, 2500, 'coindrop-close')), setTimeout(f_while_drop, 1);
+    }
+}
+
+function click_byClassName(a, b = 'min', c = 1, d = 0) {
+    var get_Element = document.getElementsByClassName(a),
+        get_Elementnull = null;
+    if (get_Element.length > 0) {
+        b == 'min' ? get_Elementnull = get_Element[0] : get_Elementnull = get_Element[get_Element.length - 1];
+        if (d != 0) {
+            if (get_Elementnull.innerText == d) {} else get_Elementnull = null;
+        } else {}
+        c == 1 && get_Elementnull != null && get_Elementnull.click();
+    }
+    return get_Elementnull;
+}
+
+async function j_vongquay() {
+    if (document.getElementById('j_vongquay').checked ) {
+		var spin = await f_fetch(domain_game + '/cache/activity/lucky/spin/settings/');
+		spin = spin['data']['version'];
+		var spin_info = await f_fetch(domain_game + '/api/activity/lucky/spin/info/');
+		spin_info = spin_info['data']['level'];
+		var data = '{"level":' + spin_info + ',"version":' + spin + '}',
+			data_info = await f_fetch(domain_game + '/api/activity/lucky/spin/lottery/', 'POST', data);
+		if (data_info['code'] == 0) {
+			f_write_log('Spin: ' + data_info['data']['amount'] + '-' + data_info['data']['currencyName']);
+			Time = 600000;
+		} else if (data_info['code'] == 6003) {
+			f_write_log(data_info['msg'], 0, 'j_log', 'red');
+			var config = await f_fetch(domain_game + '/api/activity/bonus-dashboard/get/', 'POST',);
+			config_time = config['data']['rollCompetition']['first']['currentTime'];
+			Time = config_time - 7200000;
+		}
+		p_spin = setTimeout(j_vongquay, Time + 60000);
+    }
+}
+async function j_roll() {
+    try {
+        if (document.getElementById('j_roll').checked ) {
+			var roll = await f_fetch(domain_game + '/api/game/support/click-roll/');
+			if (roll['code'] == 6001) {
+				f_write_log('Chưa đến giờ hoặc hết lượt quay rồi!', 0, 'j_log', 'red');
+				var roll_data = await f_fetch(domain_game + '/api/activity/bonus-dashboard/get/', 'POST',);
+				roll_time = roll_data['data']['rollCompetition']['first']['currentTime'];
+			} else { 
+				f_write_log('Đã roll: '+ roll['data']['roll']);
+				roll_time = 600000;
+			}
+			p_roll = setTimeout(j_roll, roll_time + 10000);
+        }
+    } catch (er_roll) {
+        f_write_log(er_roll + 'j_roll');
+    }
+}
+async function j_recharge() {
+    try {
+        if (document.getElementById('j_recharge').checked ) {
+			if (document.getElementById('recharge_BCD').checked) {
+				data = '{"currencyName":"' + 'BCD' + '","token":"iAtIJOwfXS1F2U4jozWR_N9b7UIsQId3yRC7mmuhzx8zgG5zku0J7iErr3tpcuIBeC6SZpDs_lDDoZ4ZJ_2KWf_74dBnInA4UJmHINeKw6ZWWZJQM1Zx0RihLZeVGyGsbrEiV6RJ0ERPziZn2zuzho0YhU22DtldT4qgfD2ms07msYrQDRRjvqNoQL9uxA85z4pX9W_8f5ULWoJT2VJdomjNpL5ler2NEYbQ5wUVRUnyCIJMisH"}';
+			}
+			if (document.getElementById('recharge_VND').checked) {
+				data = '{"currencyName":"' + 'VNDFIAT' + '","token":"P1_eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.hKdwYXNza2V5xQnOfmyoAJu3u0H8UuH-Yuo_xFWReJHeiXdKDmqaYc7djG9SSkoOJ3aeGuP5SUps4QbGEZT6DztFxcUC57R5RRJW0S8vtnZ6Dy9-dGvacyNK2Pjl3w2zljTT4_3Kb9Z3Z-XStGR567aAM2UebAxjq7tho2OfmiS333xVORQZ8ai7C7tHk4L-I9GOwiL_4d7ijuqhtq86JxAeSs8WCqktn7pSu7yyZJPvwC69Qg-Y4zqYi8DyB8h0hFNKHvBFlrWZhZPhLISV39ALuq6yAgD6FEOkjvrNnzhaWbgyII3iw7eG72aY4pI8CMSN85UFGI8GacP-iJRgUOiYWyDSavM_lCaRRBqQU2abkWBuPVXpyDQcCNKR2dPDqXkvI6Z3ZnIWrclwqLcmwZlLoHVmEUhCaSk4eptaUD8JNKr_JC55GtfZOpp_lC6sEzU2OlJbGsKJNT2BDfr2qAHErOFjVHyRZHO_ygkvZdPporZOcva9UwL6oMi_nYu8XM-nsOybg9E_DbiSbW7jb-YZLhTlwFF-ISW2XqwVdssRX6C5RWtm3It3vzzHSsD3zT3RSvKcRdl8zT_UMwEMqdTxgIgaZ75uzxcu7GWlPQ5K44sEyZwSQc-tmgoi-wFUKNw96Ai0LBQt1C_lWFhBLjzU3kACgSv3qVeDb-0mChtu1TnT1b13OZ1P0b2osZ7l5dH8AASNt_Ie_vVmQ-vC9HZnwTjaCWup8ee_AYhEvaT2EXrFnkaF8OzWC7_TJ5aps5nZWDmHfE5E9XUsgN4rFoJwioeOdoTLmx46TOB-DP8f_mXcmr5qrnqZ0Ni4N0tPfeLccVdYnV6jgGkrnGKWDNt4v9vV9zblNaQwASPEBIpQ7MM9UREGleudk_kg0knAVPzfXI_cmRNI4NaGiM9wHah-wVFNH9ZhuV72ayUjquqvIHIliswNpLYzSlSETEhNx3Wgk8RVL_qVyNdf1NngLRhHQldPLER6OvCe-hLrUT3MnaSoczDsT-iv8K4jss0Cf9uTst06xd06xD9yCbyuvwlbJgaYb1uSYHGeIaeIplDr6bkwyYgNQ530p6SfStyrVO6gI6xjWBCck4lUXtDmFeMXn61vLT6fu46I5rHQIEVgKVAxzF72uWFIeanSPZLEy-M7YfWniPX7XkZez2rVKSOMnn2L6F6UbAJPSYsXSewcHAr3zGwHXOl7KY-bsicDNx62E3uEZS9vYocGGNFqSwcE1V7a9pxZf1-VcAeMuED6THqXT61JxyM1KrGwMCiLBzbmueH1hSeNed1MGCIRljdFteJ0zGdEufjJdfjAyCSoEXGkfHXmtlzNQt1P04hFyjOWgtc07zkrt0LfUrAAQtmw4DELPZSGtfh_ELL5t-gBt7R71YShdHx7auXb9vIOFQqk6OtCD_w8twN5_Pd7VbvWU9EBZxwPuV16E6VasazKVGmbDe8gU7l2nSz1l7h3qYoZKWP7_fz84OeOr03Yk7du0f0c4w3juIVZPTf5Vy_JicDbFdWlAetvkzkD6S9u-QuLaLnYk6qQu2OtXdURqtjgssS5Z7twqlzMiAixLtvIv8GH-AdCmv01rJU-Cv42OC1XfHEjiHEFVgcLnlrnCMDgunEcdfAM0EhSVVXgJs-0OkwN36sxvS9jEBBJW7F5Gs8ldJQjblRYRAVyNnxYjnOyfifggHybhnUDIAQht5GRS_2qBcCXEAs4_50yK7Y5kjB9-ReRBam1WTdAcYLGqbDQn3kgvy1cF7_j3bidwUV_GRMUjvZCLR8oZYpZhFA_0liVgS0w4ySA0m-5dr16x9QeTJAKwNT0PhqdjfYwA9f8yiHDk9BzmvSwEcUD88R-h0wMyRtcKW6MDcv1CtIfzCAVgK-N6MNjppBVtMxbN5D3_jVoc0xEVxBAy6NV8gxjuvxuDPoakxeHAhk3HqDdNufMxtVN_2FIT9ofg0-yVIdr4-WzgxLl66HOmaa-5U8oKvW9X4VFbsIH9XjAxylhxmgZwgxxkmTJsp74tcKz72jyq_b6M2CSz6Dej955JSvRVsBfk3ZxgZHYJ4i_55w5phceaBDNgvavEf4CONuuoQPn8i_wrZUTrVliqMg6BIWaRoUOb-np_cGF7wq4ncXdCJ1ampMHuR6bIfwNq08Mmi8f3S2VPzyPxePZ3zZHbpCJA0MAzyf_-8Rg05dwOwmj06tF-jymKWpdmm7iZfw1Su9rF2NTpFoyI-_RbNXf1Co9MqzgOFFsRQR_fNOnnT9hX_7SRMGtppSrnUCstmP9NLt9JtTEnMQPNWvXq4cRFATsx23DMuDSwqmbhcduT2fxGp_fBJSIGG7KmaVh6-kWJIKqo0GXMDzwKB46HmwysBSXPTFTe8sYBCdY0P2BfR6fsAoHeIQU6gPXYkn1CeB0OV_lU-4KE8SwB-IQMpcBHAuCdQxo-w3Dx6lZ7NN6hdAk94FUXVc_YGYHnvoYb-a61bSesp2Rx57puFx6YTzAkusEU6ziCuQo58HTpBtmUrwFLUwA3LcJJuX2PN1_5AMPMdezCIqDc4MFW6nxupe1OKhzIes0jEzfujvbNGuYqYB_6yStV4YoXqd6AhIrzaB3cXGhPUmP6ensxNh08U7THBeqwSdeoz25XXnJhuL7GjSBs19UJz7_4Z3Qb5OXzYmpIgqx-kToh9apyvIPOMUlBcR428dUhmtQalAqEBLznT1Hpr3CBiUiTAJef7-Prw_CLBucyRYU_BheWzcpqdn_YbYbsnRvP7DOrrjCJdOjsDtI05iD8bkjNGF2EK6eDbIOkP7MTS1ETYov4u_YS2ORa0CoOAfmFK2zbDgwdEjcxuYy68dGZYBu6hhS-F9VCi7V0QmQSqrPYSKdgqJs67dWxoQbRhFGPEcH5fB0pqVO5cpJx3AmIJJJRB-ZzqSbiiYOEPtiQDUVQy2TVsqnkYXC6JxnJ6o_A-EW1SOF8InN9fVxtbX35zW2XNBkhZfkHzRxA6jZsE0gSNGtUwiIraWdRzvJPow5l59vY7G3QNr8tQ4Qace7h8OgqufuK5NRCLmK2HssI-7_obi7lH0TKXjU_LRUyJVx9Cd092gFyIQ1vnj24hApHbXzecjumzZwRhIhO2_kEk_5YW_0HyW2dVaB-enFqv3C6yGodII_khW5qlxY3zaCgspT8PmVLFtY1u8Ljmy-_b-PI1W-EuFnp-BX7sXE67v7WrexPKlQuoKoFeKf5ykpEmYvRDglk7iUgoVrooElojAsgX5AknswQUrq2Q_Z5JYrFI9R5FgwrFmWRRHqJuVJfIo96kw9G2NeHobCe9Lup92RQMwHco-IS687fPWI_2LywgRakcYl5YxbE_HOXK5f1QRt4sBTDEujZXhwzmQsXhWoc2hhcmRfaWTOFZnkVKJwZAA.3HyqQ7xyB_bQadIqlt74Ixgy60Mw_XV6Mfn7B4JjMuA"}';
+			}
+			var recharge = await f_fetch(domain_game + '/api/game/support/bonus/vr/receive/', 'POST', data);
+            f_write_log('Đang nhận recharge ...');
+            var recharge_amount = recharge['data']['rewards'][0]['amount'],
+                recharge_currency = recharge['data']['rewards'][0]['currencyName'];
+            if(recharge['code'] == 0){
+                f_write_log('Nhận recharge: ' + recharge_amount + '-' + recharge_currency + '-- done!');
+            }
+            recharge_lasttime = recharge['data']['lastReceiveTime'];
+            recharge_nexttime = recharge['data']['nextReceiveTime'];
+			var config = await f_fetch(domain_game + '/api/user/config/');
+			config_time = config['data']['serverTimestemp'];
+            if (recharge_nexttime > recharge_lasttime) {
+				count_rechar++;
+                var date = new Date();
+                recharge_date = new Date(recharge_nexttime);
+                next_time = recharge_nexttime - config_time;
+                f_write_log(' [' + count_rechar +'] Next time : ' + recharge_date.getHours() + ':' + recharge_date.getMinutes() +' | Nhận recharge sau: ' + (next_time / 60 / 1000).toFixed(2) + ' phút' ,  0, 'j_log', 'red');
+                p_rechar = setTimeout(j_recharge, next_time);
+            } else {
+				f_write_log('Không có thông tin nhận thưởng!', 0, 'j_log', 'red');
+			}
+        }
+    } catch (er_recharge) {
+        f_write_log(er_recharge + ' j_recharge');
+    }
+}
+function f_fetch(a, b = 'GET', c = null) {
+    return fetch(a, {
+        'headers': {
+            'accept': 'application/json,text/plain,*/*',
+            'accept-language': 'vi',
+            'content-type': 'application/json;charset=UTF-8',
+            'sec-ch-ua': '"Chromium";v="106", "Google Chrome";v="106", "Not;A=Brand";v="99"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin'
+        },
+        'referrer': domain_game + '',
+        'referrerPolicy': 'strict-origin-when-cross-origin',
+        'body': c,
+        'method': b,
+        'mode': 'cors',
+        'credentials': 'include'
+    }).then(data_js => data_js.json()).then(Json_data => {
+        return Json_data;
+    }).catch(er_log => {
+        f_write_log('Lỗi fetch');
+    });
+}
+
+function f_hide() {
+    document.getElementById('j_auto').style.display = 'none', document.getElementById('j_auto_icon').style.display = '';
+}
+
+function f_show() {
+    document.getElementById('j_auto').style.display = '', document.getElementById('j_auto_icon').style.display = 'none';
+}
+
+function f_write_log(a, b = 0, c = 'j_log', d = 'blue') {
+    if (temp_log == a) return;
+    document.getElementById(c).innerHTML = '<span style="color:' + d + ';">\x20' + a + '</span><br/>' + document.getElementById(c).innerHTML;
+    if (b == 1) {
+        document.getElementById(c).innerHTML = '<span style="color:' + d + ';">' + a + '</span><br/>';
+    }
+}
+var temp_log = '';
+async function load_checkmenu(a) {
+    if (a == 'j_drop') {
+        document.getElementById('j_drop').checked === 'true';
+        if (document.getElementById('j_drop').checked) {
+            f_write_log('Chụp DROP vui lòng mở kênh chat lên nhé', 0, 'j_log', 'red');
+            j_drop(), f_while_drop();
+        }
+	} else if (a == 'j_flashdrop' ) {
+        document.getElementById('j_flashdrop').checked === 'true';
+		 if (document.getElementById('j_flashdrop').checked) {
+            f_write_log('FLASHDROP Vui lòng mở kênh chat lên để ko miss code', 0, 'j_log', 'red');
+            j_drop(), f_while_drop();
+		}
+    } else if (a == 'j_vongquay') {
+		document.getElementById('j_vongquay').checked === 'true';
+		if (document.getElementById('j_vongquay').checked) {
+			j_vongquay();
+		} else {
+			clearTimeout(p_spin);
+		}
+	} else if (a == 'j_roll') {
+		document.getElementById('j_roll').checked === 'true';
+		if (document.getElementById('j_roll').checked) {
+			j_roll();
+		} else {
+			clearTimeout(p_roll);
+		}
+	} else if (a == 'j_coco') {
+		document.getElementById('j_coco').checked === 'true';
+		if (document.getElementById('j_coco').checked) {
+			j_coco();
+		}
+	} else if (a == 'j_recharge') {
+		document.getElementById('j_recharge').checked === 'true';
+		if (document.getElementById('j_recharge').checked) {
+			j_recharge();
+		} else {
+            clearTimeout(p_rechar);
+        }
+	}
+}
+
+async function load_gui() {
+    try {
+        const div_element = document.createElement('div');
+        var div_main = '<div id="j_auto_icon" onclick="f_show()" style="color:rgb(0,0,0);font-family:Arial;border: 1px solid black;border-radius:5px;position:fixed;top:0;background-color:rgb(255,0,0);z-index:10001;display:none;">AUTO</div><div id="j_auto" style="font-family:Arial;width: 210px;border: 1px solid black;border-radius:5px;position:fixed;top:0;z-index:10001;padding-bottom:5px;background-color:rgb(255,255,255);color:black;">\t<div onclick="f_hide()" style="top:2;left:0;font-size:25px;padding-left:3px;position:absolute;color:rgb(255,0,0);z-index:1001;" >X</div>\t<div style="text-align:center;font-size:20px;padding-top:10px;border-radius:5px 5px 0px 0px;background-color:rgb(102, 205, 10);position:relative;">AUTO BC.GAME</div><div id="j_menu" style="margin-left:10px;padding-top:5px;font-size:13px;clear:both;"><input onchange="load_checkmenu(this.value)" type="checkbox" id="j_drop" value="j_drop"> DROP - Chụp<br/><input onchange="load_checkmenu(this.value)" type="checkbox" id="j_vongquay" value="j_vongquay"> SPIN - Vòng quay<br/><input onchange="load_checkmenu(this.value)" type="checkbox" id="j_roll"  value="j_roll"> ROLL - 9h09p<br/><input onchange="load_checkmenu(this.value)" type="checkbox" id="j_coco"  value="j_coco"> Bắt nhện - COCO<br/><input onchange="load_checkmenu(this.value)" type="checkbox" id="j_recharge"  value="j_recharge"> Recharge - Tên lửa <br/><div style="margin-left:30px;padding-top:2px;font-size:10px;"><input type="checkbox" id="recharge_BCD"  value="BCD">BCD<br/><input type="checkbox" id="recharge_VND"  value="VND">VND</div><input onchange="load_checkmenu(this.value)" type="checkbox" id="j_flashdrop"  value="j_flashdrop"> FLASHDROP <br/></div><div style="margin:10px;padding-top:5px;border: 1px solid black;border-radius:5px;height:200px;overflow: scroll;"><div id="j_log" style="font-size:12px;color:blue;"></div></div></div>';
+        div_element.innerHTML = div_main;
+        const body = document.getElementsByTagName('body')[0];
+        body.appendChild(div_element), load_checkmenu('');
+        f_write_log('#INFO ! _ Script Auto BCgame V9 by JokerVTN', 0, 'j_log', 'red');
+    } catch (er_log) {
+        f_write_log(er_log + 'load_gui');
+    }
+}
